@@ -59,7 +59,7 @@ def read_and_send_messages(csv_file, turn_off):
         send_mqtt_message(mac_id, turn_off)
 
 def job():
-    # Schedule task to turn on AC daily at 8 AM and 9:30 PM
+    # Schedule task to turn on AC daily at 8 AM and 9:30 PM UTC+05:30
     schedule.every().day.at("02:30").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=False)
     schedule.every().day.at("14:30").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=True)
     schedule.every().day.at("02:30").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=False)
@@ -71,15 +71,15 @@ def job():
         schedule.every().day.at(f"{hour:02}:00").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=False)
 
     # Schedule hourly execution to turn off AC after 20:00 for ALL_SITES
-    for hour in range(20, 24):
+    for hour in range(15, 24):
         schedule.every().day.at(f"{hour:02}:00").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=True)
-    for hour in range(0, 8):
+    for hour in range(0, 3):
         schedule.every().day.at(f"{hour:02}:00").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=True)
 
     # Schedule hourly execution to turn off AC after 21:30 for Hyderbad
-    for hour in range(21, 24):
+    for hour in range(17, 24):
         schedule.every().day.at(f"{hour:02}:00").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=True)
-    for hour in range(0, 8):
+    for hour in range(0, 3):
         schedule.every().day.at(f"{hour:02}:00").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=True)
 
     while True:
