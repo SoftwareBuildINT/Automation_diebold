@@ -60,9 +60,9 @@ def read_and_send_messages(csv_file, turn_off):
 
 def job():
     # Schedule task to turn on AC daily at 8 AM and 9:30 PM
-    schedule.every().day.at("09:54").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=False)
+    schedule.every().day.at("09:57").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=False)
     schedule.every().day.at("20:00").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=True)
-    schedule.every().day.at("09:54").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=False)
+    schedule.every().day.at("09:57").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=False)
     schedule.every().day.at("21:30").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=True)
 
     # Schedule hourly execution to turn on AC after 08:00 for ALL_SITES
