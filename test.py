@@ -3,6 +3,7 @@ import paho.mqtt.client as mqtt
 import schedule
 import time
 import random
+from datetime import datetime
 
 # MQTT Broker details
 mqtt_broker = "15.207.28.229"
@@ -59,22 +60,26 @@ def read_and_send_messages(csv_file, turn_off):
         send_mqtt_message(mac_id, turn_off)
 
 def job():
+    # Print current time
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print("Current time:", current_time)
+
     # Schedule task to turn on AC daily at 8 AM and 9:30 PM UTC+05:30
     schedule.every().day.at("02:30").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=False)
     schedule.every().day.at("14:30").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=True)
     schedule.every().day.at("02:30").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=False)
     schedule.every().day.at("16:00").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=True)
 
-    # Schedule hourly execution to turn on AC after 08:00 for ALL_SITES
-    for hour in range(8, 20):
-        schedule.every().day.at(f"{hour:02}:00").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=False)
-        schedule.every().day.at(f"{hour:02}:00").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=False)
+    # Schedule hourly execution to turn on AC after 08:00 am UTC+05:30 for ALL_SITES
+    for hour in range(3, 14):
+        schedule.every().day.at(f"{hour:02}:30").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=False)
+        schedule.every().day.at(f"{hour:02}:30").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=False)
 
     # Schedule hourly execution to turn off AC after 20:00 for ALL_SITES
     for hour in range(15, 24):
-        schedule.every().day.at(f"{hour:02}:00").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=True)
+        schedule.every().day.at(f"{hour:02}:30").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=True)
     for hour in range(0, 3):
-        schedule.every().day.at(f"{hour:02}:00").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=True)
+        schedule.every().day.at(f"{hour:02}:30").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=True)
 
     # Schedule hourly execution to turn off AC after 21:30 for Hyderbad
     for hour in range(17, 24):
