@@ -60,10 +60,6 @@ def read_and_send_messages(csv_file, turn_off):
         send_mqtt_message(mac_id, turn_off)
 
 def job():
-    # Print current time
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print("Current time:", current_time)
-
     # Schedule task to turn on AC daily at 8 AM and 9:30 PM UTC+05:30
     schedule.every().day.at("02:30").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=False)
     schedule.every().day.at("14:30").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=True)
