@@ -60,10 +60,10 @@ def read_and_send_messages(csv_file, turn_off):
 
 def job():
     # Schedule task to turn on AC daily at 8 AM and 9:30 PM
-    schedule.every().day.at("09:57").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=False)
-    schedule.every().day.at("20:00").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=True)
-    schedule.every().day.at("09:57").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=False)
-    schedule.every().day.at("21:30").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=True)
+    schedule.every().day.at("02:30").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=False)
+    schedule.every().day.at("16:30").do(read_and_send_messages, 'ALL_SITES(8_TO_8).csv', turn_off=True)
+    schedule.every().day.at("02:30").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=False)
+    schedule.every().day.at("18:00").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=True)
 
     # Schedule hourly execution to turn on AC after 08:00 for ALL_SITES
     for hour in range(8, 20):
@@ -78,9 +78,9 @@ def job():
 
     # Schedule hourly execution to turn off AC after 21:30 for Hyderbad
     for hour in range(21, 24):
-        schedule.every().day.at(f"{hour:02}:30").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=True)
+        schedule.every().day.at(f"{hour:02}:00").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=True)
     for hour in range(0, 8):
-        schedule.every().day.at(f"{hour:02}:30").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=True)
+        schedule.every().day.at(f"{hour:02}:00").do(read_and_send_messages, 'Hyderbad(8_TO_9,30).csv', turn_off=True)
 
     while True:
         schedule.run_pending()
