@@ -13,6 +13,9 @@ mqtt_password = "buildint"
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
 
 def send_mqtt_message(mac_id, turn_off=False):
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"Current time: {current_time}")
+
     if turn_off:
         # MQTT message payload for night time
         mqtt_message = {
@@ -60,6 +63,9 @@ def read_and_send_messages(csv_file, turn_off):
         send_mqtt_message(mac_id, turn_off)
 
 def job():
+    #Print the start time of the job
+    print(f"Automation scheduling started")
+
     # Schedule task to turn on AC daily at 8 AM and 9:30 PM UTC+05:30
     schedule.every().day.at("02:30").do(read_and_send_messages, 'ALL_SITES(8_TO_10).csv', turn_off=False)
     schedule.every().day.at("16:30").do(read_and_send_messages, 'ALL_SITES(8_TO_10).csv', turn_off=True)
