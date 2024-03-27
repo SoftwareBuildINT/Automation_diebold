@@ -80,7 +80,7 @@ def job():
     print(f"Automation scheduling started at: {ist_now} IST time")
 
     # Schedule task to turn on AC daily at 8 AM and 9:30 PM UTC+05:30
-    schedule.every().day.at("13:39").do(read_and_send_messages, 'ALL_SITES(8_TO_10).csv', False, client)
+    schedule.every().day.at("02:30").do(read_and_send_messages, 'ALL_SITES(8_TO_10).csv', False, client)
     schedule.every().day.at("16:30").do(read_and_send_messages, 'ALL_SITES(8_TO_10).csv', True, client)
 
     # Schedule hourly execution to turn on AC after 08:00 am till 10:00 pm UTC+05:30 for ALL_SITES
