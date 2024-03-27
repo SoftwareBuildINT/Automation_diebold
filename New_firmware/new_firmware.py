@@ -3,40 +3,28 @@ import paho.mqtt.client as mqtt
 import schedule
 import time
 import random
+import mysql.connector
 from datetime import datetime, timedelta, timezone
 
 # MQTT Broker details
-mqtt_broker = "15.207.28.229"
+mqtt_broker = "15.206.230.32"
 mqtt_port = 1883
-mqtt_username = "buildint"
-mqtt_password = "buildint"
+mqtt_username = "mqtt_buildint"
+mqtt_password = "mqtt_buildint_$$2023"
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
 
+# MySQL connection parameters
+config = {
+    'user': 'iems_admin',
+    'password': 'your_password',
+    'host': '15.206.230.32',  # Or your host
+    'database': 'db_iems',
+    'raise_on_warnings': True
+}
+
 def send_mqtt_message(mac_id, turn_off=False):
-    
-    if turn_off:
-        # MQTT message payload for night time
-        mqtt_message = {
-            "r0s": "false", 
-            "r1s": "false",
-            "r0e": "false",
-            "r1e": "false",
-        }
-    else: 
-        # MQTT message payload for normal operation
-        mqtt_message = {
-            "account": "2",
-            "logicmode": "temp",
-            "mintemp": "-2",
-            "maxtemp": "-1",
-            "motionenabled": "false",
-            "r0s": "true",
-            "r1s": "true",
-            "r0e": "true",
-            "r1e": "true",
-            "acontime": 7200,
-            "acofftime": 600
-        }
+    # MQTT message payload for Automatic operation
+    mqtt_message = f"$SRMK11111111"
         
     # Connect to MQTT broker
     client = mqtt.Client(client_id)
@@ -54,9 +42,8 @@ def read_and_send_messages(csv_file, turn_off):
     # Read CSV file
     df = pd.read_csv(csv_file)
 
-    #Print the start time of the job
-    utc_now = datetime.now(timezone.utc)
     # Convert UTC time to Indian Standard Time (IST) by adding 5 hours and 30 minutes
+    utc_now = datetime.now(timezone.utc)
     ist_now = utc_now + timedelta(hours=5, minutes=30)
     ist_now = ist_now.strftime(f"%Y-%m-%d %H:%M:%S")
     print(f"Message sent at: {ist_now} IST time")
@@ -76,8 +63,8 @@ def job():
     print(f"Automation scheduling started at: {ist_now} IST time")
 
     # Schedule task to turn on AC daily at 8 AM and 9:30 PM UTC+05:30
-    schedule.every().day.at("02:30").do(read_and_send_messages, 'ALL_SITES(8_TO_10).csv', turn_off=False)
-    schedule.every().day.at("16:30").do(read_and_send_messages, 'ALL_SITES(8_TO_10).csv', turn_off=True)
+    schedule.every().day.at("02:30").do(read_and_send_messages, 'All_sites_new_firmware.csv', turn_off=False)
+    schedule.every().day.at("16:30").do(read_and_send_messages, 'All_sites_new_firmware.csv', turn_off=True)
 
     # Schedule hourly execution to turn on AC after 08:00 am till 10:00 pm UTC+05:30 for ALL_SITES
     for hour in range(3, 16):

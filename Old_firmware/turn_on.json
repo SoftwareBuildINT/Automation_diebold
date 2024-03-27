@@ -1,0 +1,13 @@
+{
+  "account": "2",
+  "logicmode": "temp",
+  "mintemp": "-2",
+  "maxtemp": "-1",
+  "motionenabled": false,
+  "r0s": true,
+  "r1s": true,
+  "r0e": true,
+  "r1e": true,
+  "acontime": 7200,
+  "acofftime": 600
+}
