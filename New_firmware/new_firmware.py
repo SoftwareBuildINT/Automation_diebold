@@ -32,15 +32,20 @@ mqtt_password = "mqtt_buildint_$$2023"
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
 
 # Global variable to store sent DIDs
-sent_DIDs = []
 response_recieved = []
 all_DIDs = []
+in_manual_mode = []
 
 
 def query_data():
     try:
+
+        response_recieved.clear()
+        all_DIDs.clear()
+        in_manual_mode.clear()
+
         # Execute the SQL query to get loc_id from mst_location table
-        mysql_cursor.execute("SELECT loc_id FROM mst_location")
+        mysql_cursor.execute("SELECT loc_id FROM mst_location where org_id = 10")
 
         # Fetch all loc_ids
         loc_rows = mysql_cursor.fetchall()
@@ -50,7 +55,7 @@ def query_data():
             loc_id = loc_row[0]  # Extract loc_id from the row
 
             # Execute the SQL query to get dev_id from mst_device table based on loc_id
-            mysql_cursor.execute(f"SELECT dev_id FROM mst_device WHERE loc_id = {loc_id}")
+            mysql_cursor.execute(f"SELECT dev_id FROM mst_device WHERE loc_id = {loc_id} AND (name = 'ATM' OR name = 'iATM')")
 
             # Fetch all dev_ids for the current loc_id
             dev_rows = mysql_cursor.fetchall()
@@ -65,66 +70,78 @@ def query_data():
         print("Error querying data from MySQL database:", error)
 
 # Call the function to execute the query
-query_data()
+# query_data()
 
-print(all_DIDs)
-print("Total dids:", len(all_DIDs))
-
+# print(all_DIDs)
+# print("Total dids:", len(all_DIDs))
 
 def on_message(client, userdata, message):
     # Callback function when a message is received
     response_DID = message.payload.decode("utf-8").split(",")[0]  # Extracting DID from the message
     command = message.payload.decode("utf-8").split(",")[2]
-    print("Received response:", response_DID)
-    print("Command:", command)
-    if response_DID in sent_DIDs and command == "$SRMK":
+    
+    if command == "$GRES" and response_DID in all_DIDs:
+        print("Received response:", response_DID)
+        print("Command:", command)
+        relay_status = message.payload.decode("utf-8").split(",")[3]
+        print("RS", relay_status)
+        if len(relay_status) < 1:
+            in_manual_mode.append(response_DID)
+            all_DIDs.remove(response_DID)
+            print("Remaining to check:", len(all_DIDs))
+        elif relay_status[-1] == "0" or "":
+            print(f"{response_DID} is in manual mode {relay_status}")
+            in_manual_mode.append(response_DID)
+            all_DIDs.remove(response_DID)
+            print("Remaining to check:", len(all_DIDs))
+        elif relay_status[-1] == "1":
+            all_DIDs.remove(response_DID)
+            print("Remaining to check:", len(all_DIDs))
+
+    elif response_DID in in_manual_mode and command == "$SRMK":
+        print("Received response:", response_DID)
+        print("Command:", command)
         response_recieved.append(response_DID)  # Store DID which has recieved the response
         print("$SRMK response recieved")
         # Remove DID from the array if response received
-        sent_DIDs.remove(response_DID)
-        print("Response remaining from $SRMK DIDs:", len(sent_DIDs))
-    elif response_DID in response_recieved and command == "$SREL":
-        print("$SREL response recieved")
-        # Remove DID from the array if response received
-        response_recieved.remove(response_DID)
-        print("Response remaining from $SREL DIDs:", len(response_recieved))
-        
-def send_manual_message(DID, client):
-    # MQTT message payload for Automatic operation
-    mqtt_message = f"{DID}$SRMK00111110"
+        in_manual_mode.remove(response_DID)
+        print("Still in manual mode:", len(in_manual_mode))
+        print("Changed to auto mode:", response_recieved)
 
-    # print(mqtt_message)
+def check_manual(DID, client):
+    # MQTT message payload for Automatic operation
+    mqtt_message = f"{DID}$GRES"
 
     # Publish message to topic  
     topic = f"Settings"
     client.publish(topic, str(mqtt_message))
-
-def send_ac_message(DID, client):
+        
+def send_auto_message(DID, client):
     # MQTT message payload for Automatic operation
-    mqtt_message = f"{DID}$SREL11111110"
+    mqtt_message1 = f"{DID}$SRMK11111111"
+    mqtt_message2= f"{DID}$SREL11110000"
+    # print(mqtt_message1)
+    # print(mqtt_message2)
 
-    # print(mqtt_message)
-
-    # Publish message to topic
+    # Publish message to topic  
     topic = f"Settings"
-    client.publish(topic, str(mqtt_message))
+    client.publish(topic, str(mqtt_message1))
+    client.publish(topic, str(mqtt_message2))
 
-def read_and_send_mask_messages(csv_file, client):
-    global sent_DIDs
-    sent_DIDs = []  # Initialize list to store sent DIDs
-
-    # Read CSV file
-    df = pd.read_csv(csv_file)
-
+def read_and_send_mask_messages(client):
+    global all_DIDs
     # Subscribe to Response topic
     client.subscribe("Response")
 
+    print(f"Checking if manual, count: {len(all_DIDs)}")
     # Iterate over each row
-    for index, row in df.iterrows():
-        DID = row.iloc[0]  # Assuming DID is in the first column
-        print(DID)
-        send_manual_message(DID, client)
-        sent_DIDs.append(DID)  # Store sent DIDs
+    for DID in all_DIDs:
+        # print(DID)
+        check_manual(DID, client)
+        # sent_DIDs.append(DID)  # Store sent DIDs
+
+def call_query():
+    query_data()
 
 def job():
     # Connect to MQTT broker
@@ -143,42 +160,40 @@ def job():
     print(f"Automation scheduling started at: {ist_now} IST time")
 
     # Schedule task to read and send messages from the CSV file
-    read_and_send_mask_messages('E:/Saujeet/Diebold/Automation_For_AC/New_firmware/manual_test.csv', client)
+    # read_and_send_mask_messages(client)
+    
+    call_query()
+    print("Total dids:", len(all_DIDs))
 
-    # Schedule task to read and send messages from the CSV file every 2 minutes
-    schedule.every(1).minutes.do(send_mask_messages, client)
-    schedule.every(1).minutes.do(send_messages, client)
+    schedule.every(2).hours.do(call_query)
+    
+    schedule.every(1).minute.do(read_and_send_mask_messages, client)
+
+    schedule.every(1).minute.do(send_mask_messages, client)
+
+    schedule.every(5).minutes.do(program_status)
 
     while True:
         schedule.run_pending()
         # Check every 1 second
         time.sleep(1)
 
+def program_status():
+    print("Remaining to check", all_DIDs)
+    print("In manual mode:", in_manual_mode)
+    print("Switched to auto mode:", response_recieved)
+
 def send_mask_messages(client):
-    global sent_DIDs
-    # Iterate through the list of DIDs and send messages
+    global in_manual_mode
 
     # Subscribe to Response topic
     client.subscribe("Response")
 
-    print("Remaining to send SRMK:", len(sent_DIDs))
+    print("Remaining to send SRMK:", len(in_manual_mode))
 
-    for DID in sent_DIDs:
-        print(DID)
-        send_manual_message(DID, client)
-
-def send_messages(client):
-    global response_recieved
-    # Iterate through the list of DIDs and send messages
-
-    # Subscribe to Response topic
-    client.subscribe("Response")
-
-    print("Remaining to send SREL:", len(response_recieved))
-
-    for DID in response_recieved:
-        print(DID)
-        send_ac_message(DID, client)
+    for DID in in_manual_mode:
+        # print(DID)
+        send_auto_message(DID, client)
 
 if __name__ == "__main__":
     job()

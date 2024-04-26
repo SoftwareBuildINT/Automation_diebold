@@ -5,3 +5,6 @@ All_sites_new_firmware.csv
 remaining.csv
 sdev.py
 test_write.py
+firmware_update.py
+All_sites_new_firmware.csv
+test.csv
