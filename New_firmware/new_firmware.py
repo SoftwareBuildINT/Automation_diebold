@@ -165,13 +165,18 @@ def job():
     call_query()
     print("Total dids:", len(all_DIDs))
 
+    read_and_send_mask_messages(client)
+
+    send_mask_messages(client)
+
+
     schedule.every(2).hours.do(call_query)
     
-    schedule.every(1).minute.do(read_and_send_mask_messages, client)
+    schedule.every(38).minutes.do(read_and_send_mask_messages, client)
 
-    schedule.every(1).minute.do(send_mask_messages, client)
+    schedule.every(38).minutes.do(send_mask_messages, client)
 
-    schedule.every(5).minutes.do(program_status)
+    schedule.every(45).minutes.do(program_status)
 
     while True:
         schedule.run_pending()
