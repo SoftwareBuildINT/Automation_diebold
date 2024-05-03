@@ -137,7 +137,7 @@ def read_and_send_mask_messages(client):
 
     # Check if the array is empty
     if not all_DIDs:
-        call_query()
+        call_query(client)
 
     # Iterate over each row
     for DID in all_DIDs:
@@ -145,8 +145,11 @@ def read_and_send_mask_messages(client):
         check_manual(DID, client)
         # sent_DIDs.append(DID)  # Store sent DIDs
 
-def call_query():
+def call_query(client):
     query_data()
+    print("Total dids:", len(all_DIDs))
+    read_and_send_mask_messages(client)
+    send_mask_messages(client)
 
 def job():
     # Connect to MQTT broker
@@ -167,12 +170,12 @@ def job():
     # Schedule task to read and send messages from the CSV file
     # read_and_send_mask_messages(client)
     
-    call_query()
-    print("Total dids:", len(all_DIDs))
+    call_query(client)
+    # print("Total dids:", len(all_DIDs))
 
-    read_and_send_mask_messages(client)
+    # read_and_send_mask_messages(client)
 
-    send_mask_messages(client)
+    # send_mask_messages(client)
 
 
     schedule.every(2).hours.do(call_query)
