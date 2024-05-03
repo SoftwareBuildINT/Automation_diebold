@@ -170,11 +170,19 @@ def job():
     send_mask_messages(client)
 
 
-    schedule.every(2).hours.do(call_query)
+    # schedule.every(2).hours.do(call_query)
     
-    schedule.every(38).minutes.do(read_and_send_mask_messages, client)
+    # schedule.every(38).minutes.do(read_and_send_mask_messages, client)
 
-    schedule.every(38).minutes.do(send_mask_messages, client)
+    # schedule.every(38).minutes.do(send_mask_messages, client)
+
+    # schedule.every(45).minutes.do(program_status)
+
+    schedule.every(1).minute.do(call_query)
+    
+    schedule.every(30).seconds.do(read_and_send_mask_messages, client)
+
+    schedule.every(30).seconds.do(send_mask_messages, client)
 
     schedule.every(45).minutes.do(program_status)
 
