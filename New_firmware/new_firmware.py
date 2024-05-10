@@ -64,7 +64,6 @@ def query_data():
     except mysql.connector.Error as error:
         print("Error querying data from MySQL database:", error)
 
-
 def on_message(client, userdata, message):
 
     payload_parts = message.payload.decode("utf-8").split(",")
