@@ -32,7 +32,7 @@ mqtt_password = "mqtt_buildint_$$2023"
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
 
 # Global variable to store sent DIDs
-response_recieved = []
+response_received = []
 all_DIDs = []
 in_manual_mode = []
 
@@ -40,7 +40,7 @@ in_manual_mode = []
 def query_data():
     try:
 
-        response_recieved.clear()
+        response_received.clear()
         all_DIDs.clear()
         in_manual_mode.clear()
 
@@ -101,12 +101,12 @@ def on_message(client, userdata, message):
     elif response_DID in in_manual_mode and command == "$SRMK":
         print("Received response:", response_DID)
         print("Command:", command)
-        response_recieved.append(response_DID)  # Store DID which has recieved the response
+        response_received.append(response_DID)  # Store DID which has recieved the response
         print("$SRMK response recieved")
         # Remove DID from the array if response received
         in_manual_mode.remove(response_DID)
         print("Still in manual mode:", len(in_manual_mode))
-        print("Changed to auto mode:", response_recieved)
+        print("Changed to auto mode:", response_received)
 
 def check_manual(DID, client):
     # MQTT message payload for Automatic operation
@@ -119,7 +119,7 @@ def check_manual(DID, client):
 def send_auto_message(DID, client):
     # MQTT message payload for Automatic operation
     mqtt_message1 = f"{DID}$SRMK11111111"
-    mqtt_message2= f"{DID}$SREL11110000"
+    mqtt_message2 = f"{DID}$SREL11110000"
     # print(mqtt_message1)
     # print(mqtt_message2)
 
@@ -202,7 +202,7 @@ def job():
 def program_status():
     print("Remaining to check", all_DIDs)
     print("In manual mode:", in_manual_mode)
-    print("Switched to auto mode:", response_recieved)
+    print("Switched to auto mode:", response_received)
 
 def send_mask_messages(client):
     global in_manual_mode
